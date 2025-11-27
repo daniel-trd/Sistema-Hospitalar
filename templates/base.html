@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Clínica Vida +</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Clínica Vida+</h1>
+    <nav>
+      <a href="{{ url_for('main.pacientes') }}">Pacientes</a> | <a> </a>
+      <a href="{{ url_for('main.lista_ex') }}">Exames</a> | <a> </a>
+      <a href="{{ url_for('main.medicos') }}">Médicos</a> | <a> </a>
+      <a href="{{ url_for('main.pacientes') }}">Pacientes</a> | <a> </a>
+      <a href="{{ url_for('main.lista_ex') }}">Agendamentos</a> | <a> </a>
+      <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="messages">
+          {% for cat, msg in messages %}
+            <li class="{{ cat }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer style="text-align:center; padding:12px; color:#666;">
+    Clínica Vida+ — Sistema de Demonstração
+  </footer>
+</body>
+</html>

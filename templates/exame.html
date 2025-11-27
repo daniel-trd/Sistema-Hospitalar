@@ -1,0 +1,63 @@
+{% extends "base.html" %} {% block content %}
+<h2>Registrar Exame</h2>
+<form action="{{ url_for('main.novo_exame') }}" method="POST" class="form">
+  <label>Paciente</label> {% if pacientes %}
+  <select name="Paciente" required>
+    <option value="">-- selecione --</option>
+    {% for p in pacientes %}
+    <option value="{{ p.id }}">{{ p.nome }} (ID: {{ p.id }})</option>
+    {% endfor %}
+  </select>
+  {% else %}
+  <!-- fallback: entrada manual de id -->
+  <input type="text" name="Paciente" placeholder="ID do paciente" /> {% endif %}
+  <label>Médico</label> {% if medicos %}
+  <select name="Medico">
+    <option value="">-- selecione --</option>
+    {% for m in medicos %}
+    <option value="{{ m.id }}">
+      {{ m.nome }} - {{ m.especialidade or '' }}
+    </option>
+    {% endfor %}
+  </select>
+  {% else %}
+  <input type="text" name="Medico" placeholder="ID do médico" /> {% endif %}
+  <label>Tipo de Exame</label>
+  <input type="text" name="tipo" placeholder="ex: sangue, imagem" />
+  <label>Nome do Exame</label>
+  <input type="text" name="exame" placeholder="ex: Hemograma" />
+  <label>Descrição</label>
+  <textarea name="descricao_exame" rows="3"></textarea>
+  <button type="submit">Registrar exame</button>
+</form>
+<hr />
+<h3>Exames</h3>
+<ul>
+  {% if exames and exames|length > 0 %} {% for e in exames %}
+  <li style="display:flex; align-items: center; gap:12px; margin-bottom:8px;">
+    <div style="flex:1;">
+    ID: {{ e.id }} — Paciente: {{ e.paciente.nome if e.paciente else
+    e.paciente_id }} | Exame: {{ e.nome_exame }} | Tipo: {{ e.tipo_exame }}
+    </div>
+
+    <form
+            action="{{ url_for('main.excluir_exame_route', id=e.exame_id) }}"
+            method="POST"
+            onsubmit="return confirm('Tem certeza que deseja excluir o paciente {{ e.nome_exame }}?');"
+            style="margin:0;"
+          >
+            <button type="submit" style="background:#e74c3c;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">
+              Excluir
+            </button>
+          </form>
+          <form action="{{ url_for('main.editar_exame_route', id=e.exame_id) }}" method="GET">
+    <button type="submit" style="background:#3498db;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">
+        Editar
+    </button>
+</form>
+  </li>
+  {% endfor %} {% else %}
+  <li>Nenhum exame registrado.</li>
+  {% endif %}
+</ul>
+{% endblock %}

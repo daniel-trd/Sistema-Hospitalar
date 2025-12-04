@@ -1,4 +1,4 @@
-/* ======== LAYOUT GERAL ======== */
+/* Geral */
 body {
     font-family: Arial, Helvetica, sans-serif;
     margin: 0;
@@ -6,7 +6,7 @@ body {
     color: #333;
 }
 
-/* ======== HEADER ======== */
+/* Header */
 header {
     background: #0066cc;
     color: white;
@@ -29,7 +29,7 @@ nav a:hover {
     text-decoration: underline;
 }
 
-/* ======== CONTEÚDO ======== */
+/* Conteudo */
 .container {
     width: 90%;
     max-width: 900px;
@@ -44,7 +44,7 @@ h2 {
     margin-top: 0;
 }
 
-/* ======== FORMULÁRIOS ======== */
+/* Formulários */
 form input,
 form select {
     padding: 8px;
@@ -68,7 +68,7 @@ form button:hover {
     background: #004a99;
 }
 
-/* ======== LISTAS ======== */
+/* Listas */
 ul {
     list-style: none;
     padding: 0;

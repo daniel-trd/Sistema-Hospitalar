@@ -3,22 +3,26 @@ from controllers.controllers import (
     listar_pacientes,
     cadastro_paciente,
     excluir_paciente,
-    editar_paciente,
     listar_exames,
     excluir_exame,
-    editar_exame,
     registrar_exame,
     listar_medicos,
     cadastro_medico,
     excluir_medico,
-    editar_medico,
+    listar_agendamentos,
+    cadastro_agendamento,
+    excluir_agendamento,
 )
+from models import models as m
+from models.models import Paciente, Exame
 
 bp = Blueprint("main", __name__)
 
 @bp.route("/")
 def home():
-    return redirect(url_for("main.pacientes"))
+    return redirect(url_for("main.home"))
+
+# ===== Rota Pacientes =====
 
 @bp.route("/pacientes")
 def pacientes():
@@ -47,9 +51,10 @@ def excluir_paciente_route(id):
     excluir_paciente(id)
     return redirect("/pacientes")
 
+# ===== Rota Exames =====
 
 @bp.route("/exame")
-def lista_ex():
+def exames():
     le = listar_exames()
     return render_template("exame.html", exames=le)
 
@@ -62,28 +67,14 @@ def novo_exame():
         request.form.get("nome_exame"),
         request.form.get("descricao_exame")
     )
-    return redirect(url_for("main.lista_ex"))
+    return redirect(url_for("main.exames"))
 
 @bp.post("/exame/excluir/<int:id>")
 def excluir_exame_route(id):
     excluir_exame(id)
     return redirect("/exame")
 
-@bp.get("/exame/editar/<int:id>")
-def editar_exame_form(id):
-    pass
-
-@bp.post("/exame/editar/<int:id>")
-def editar_exame_route(id):
-    dados = {
-        "nome_exame": request.form.get("exame"),
-        "tipo_exame": request.form.get("tipo"),
-        "descricao_exame": request.form.get("descricao_exame"),
-    }
-    editar_exame(id, **dados)
-    return redirect(url_for("main.novo_exame"))
-
-
+# ===== Rota Medicos =====
 
 @bp.route("/medicos")
 def medicos():
@@ -105,3 +96,77 @@ def novo_medico():
 def excluir_medico_route(id):
     excluir_medico(id)
     return redirect("/medicos")
+
+
+
+# ===== Rota Dashboard =====
+
+@bp.route("/dashboard")
+def dashboard():
+
+    qnt_paciente = Paciente.query.count()
+    qnt_exame = Exame.query.count()
+
+    agendamento_model = None
+    for candidate in ("Agendamento", "Agendamentos", "Appointment", "Appointments", "Consulta", "Consultas"):
+        agendamento_model = getattr(m, candidate, None)
+        if agendamento_model:
+            break
+
+    try:
+        qtd_agendamentos = agendamento_model.query.count() if agendamento_model else 0
+    
+    except Exception:
+        qtd_agendamentos = 0
+
+    return render_template(
+        "dashboard.html",
+        qtd_agendamentos = qtd_agendamentos,
+        qnt_exame = qnt_exame,
+        qnt_paciente = qnt_paciente
+    )
+
+
+
+# ===== Rota Agendamento =====
+
+@bp.route("/agendamentos")
+def agendamento():   # endpoint = main.agendamento
+    ags = listar_agendamentos()
+    return render_template("agendamento.html", agendamentos=ags)
+
+@bp.route("/agendamentos/new", methods=["POST"])
+def novo_agendamento():
+    # pegar do form/request.json
+    paciente = request.form.get("paciente") or request.json.get("paciente")
+    medico = request.form.get("medico") or request.json.get("medico")
+    start = request.form.get("start") or request.json.get("start")
+    end = request.form.get("end") or request.json.get("end")
+    tipo = request.form.get("tipo") or request.json.get("tipo")
+    descricao = request.form.get("descricao") or request.json.get("descricao")
+
+    cadastro_agendamento(paciente, medico, start, end, tipo, descricao)
+    return redirect(url_for("main.agendamento"))
+
+@bp.post("/agendamentos/excluir/<int:id>")
+def excluir_agendamento_route(id):
+    excluir_agendamento(id)
+    return redirect(url_for("main.agendamento"))
+
+@bp.route("/agendamentos/editar/<int:id>", methods=["GET","POST"])
+def editar_agendamento_route(id):
+    if request.method == "GET":
+        # renderiza form com dados
+        ag = Agendamento.query.get(id)
+        return render_template("edit_agendamento.html", ag=ag)
+    else:
+        dados = {
+            "paciente_id": request.form.get("paciente"),
+            "medico_id": request.form.get("medico"),
+            "start": request.form.get("start"),
+            "end": request.form.get("end"),
+            "tipo": request.form.get("tipo"),
+            "descricao": request.form.get("descricao"),
+        }
+        editar_agendamento(id, **dados)
+        return redirect(url_for("main.agendamento"))

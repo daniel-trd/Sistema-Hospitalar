@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width:1100px; margin: 0 auto;">
+  <h1 style="color:#0066cc; margin-bottom: 18px;">Dashboard — Clínica Vida+</h1>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:18px;">
+    <!-- Card Pacientes -->
+    <div class="card">
+      <div class="card-left" style="background:#f0f7ff; border-left:6px solid #0066cc;">
+        <h3>Pacientes</h3>
+        <p class="big">{{ qtd_pacientes }}</p>
+        <p class="small">Total de pacientes cadastrados</p>
+      </div>
+    </div>
+
+    <!-- Card Agendamentos -->
+    <div class="card">
+      <div class="card-left" style="background:#f0f7ff; border-left:6px solid #0066cc;">
+        <h3>Agendamentos</h3>
+        <p class="big">{{ qtd_agendamentos }}</p>
+        <p class="small">Consultas / exames agendados</p>
+      </div>
+    </div>
+
+    <!-- Card Exames -->
+    <div class="card">
+      <div class="card-left" style="background:#f0f7ff; border-left:6px solid #0066cc;">
+        <h3>Exames</h3>
+        <p class="big">{{ qtd_exames }}</p>
+        <p class="small">Total de exames registrados</p>
+      </div>
+    </div>
+  </div>
+
+  <section style="margin-top:28px; background:white; padding:16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+    <h2 style="margin:6px 0 12px 0; color:#333;">Resumo rápido</h2>
+    <p style="color:#444; margin:0;">Aqui você vê as métricas principais da clínica. Clique nos menus para ver detalhes de pacientes, exames e agendamentos.</p>
+  </section>
+</div>
+{% endblock %}

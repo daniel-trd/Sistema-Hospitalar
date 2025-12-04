@@ -37,11 +37,11 @@
   <li style="display:flex; align-items: center; gap:12px; margin-bottom:8px;">
     <div style="flex:1;">
     ID: {{ e.id }} — Paciente: {{ e.paciente.nome if e.paciente else
-    e.paciente_id }} | Exame: {{ e.nome_exame }} | Tipo: {{ e.tipo_exame }}
+    e.paciente_id }} Medico: {{e.medico_id}}| Exame: {{ e.nome_exame }} | Tipo: {{ e.tipo_exame }}
     </div>
 
     <form
-            action="{{ url_for('main.excluir_exame_route', id=e.exame_id) }}"
+            action="{{ url_for('main.excluir_exame_route', id=e.id) }}"
             method="POST"
             onsubmit="return confirm('Tem certeza que deseja excluir o paciente {{ e.nome_exame }}?');"
             style="margin:0;"
@@ -50,10 +50,6 @@
               Excluir
             </button>
           </form>
-          <form action="{{ url_for('main.editar_exame_route', id=e.exame_id) }}" method="GET">
-    <button type="submit" style="background:#3498db;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">
-        Editar
-    </button>
 </form>
   </li>
   {% endfor %} {% else %}
@@ -61,3 +57,13 @@
   {% endif %}
 </ul>
 {% endblock %}
+
+
+
+
+
+
+
+
+
+

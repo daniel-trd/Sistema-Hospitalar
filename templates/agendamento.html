@@ -1,40 +1,148 @@
 {% extends "base.html" %}
 {% block content %}
-<div style="max-width:1100px; margin: 0 auto;">
-  <h1 style="color:#0066cc; margin-bottom: 18px;">Dashboard — Clínica Vida+</h1>
+<div class="container">
+  <h2>Agendamentos</h2>
+  <div id="calendar"></div>
 
-  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:18px;">
-    <!-- Card Pacientes -->
-    <div class="card">
-      <div class="card-left" style="background:#f0f7ff; border-left:6px solid #0066cc;">
-        <h3>Pacientes</h3>
-        <p class="big">{{ qtd_pacientes }}</p>
-        <p class="small">Total de pacientes cadastrados</p>
-      </div>
-    </div>
+  <!-- Modal simples (bootstrap) para criar/editar -->
+  <div id="modal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+      <form id="modal-form" class="modal-content">
+        <div class="modal-body">
+          <label>Paciente</label>
+            <input type="text" name="Paciente">
+            {% for p in pacientes %}
+              <option value="{{ p.id }}">{{ p.nome }}</option>
+            {% endfor %}
+          </select>
 
-    <!-- Card Agendamentos -->
-    <div class="card">
-      <div class="card-left" style="background:#f0f7ff; border-left:6px solid #0066cc;">
-        <h3>Agendamentos</h3>
-        <p class="big">{{ qtd_agendamentos }}</p>
-        <p class="small">Consultas / exames agendados</p>
-      </div>
-    </div>
+          <label>Médico</label>
+             <input type="text" name="Médico">
+            {% for m in medicos %}
+              <option value="{{ m.id }}">{{ m.nome }}</option>
+            {% endfor %}
+          </select>
 
-    <!-- Card Exames -->
-    <div class="card">
-      <div class="card-left" style="background:#f0f7ff; border-left:6px solid #0066cc;">
-        <h3>Exames</h3>
-        <p class="big">{{ qtd_exames }}</p>
-        <p class="small">Total de exames registrados</p>
-      </div>
+          <label>Data e hora início</label>
+          <input type="datetime-local" name="start" id="start" required>
+
+          <label>Data e hora fim</label>
+          <input type="datetime-local" name="end" id="end">
+
+          <label>Tipo</label>
+          <input type="text" name="tipo" id="tipo">
+
+        </div>
+        <div class="modal-footer">
+          <button type="submit">Salvar</button>
+          <button type="button" id="btn-delete" style="background:#e74c3c;color:#fff;">Excluir</button>
+          <button type="button" id="btn-close">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
-
-  <section style="margin-top:28px; background:white; padding:16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
-    <h2 style="margin:6px 0 12px 0; color:#333;">Resumo rápido</h2>
-    <p style="color:#444; margin:0;">Aqui você vê as métricas principais da clínica. Clique nos menus para ver detalhes de pacientes, exames e agendamentos.</p>
-  </section>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const calendarEl = document.getElementById('calendar');
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    selectable: true,
+    editable: true,
+    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+
+    events: '/api/agendamentos', // busca JSON
+
+    // criar ao selecionar no calendário
+    select: function(info) {
+      openModal({ start: info.startStr, end: info.endStr });
+    },
+
+    // arrastar/resize -> atualiza
+    eventDrop: function(info) {
+      const id = info.event.id;
+      fetch(`/api/agendamentos/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ start: info.event.start.toISOString(), end: info.event.end ? info.event.end.toISOString() : null })
+      }).then(r => {
+        if (!r.ok) { alert('Erro ao mover evento'); info.revert(); }
+      });
+    },
+
+    eventClick: function(info) {
+      // abrir modal com dados do evento
+      const ev = info.event;
+      const props = ev.extendedProps;
+      openModal({
+        id: ev.id,
+        paciente_id: props.paciente_id,
+        medico_id: props.medico_id,
+        start: ev.start ? ev.start.toISOString().slice(0,16) : '',
+        end: ev.end ? ev.end.toISOString().slice(0,16) : '',
+        tipo: props.tipo,
+        descricao: props.descricao
+      });
+    }
+  });
+
+  calendar.render();
+
+  // modal logic (simples)
+  const modal = document.getElementById('modal');
+  const form = document.getElementById('modal-form');
+  const btnDelete = document.getElementById('btn-delete');
+  let currentId = null;
+
+  function openModal(data={}) {
+    currentId = data.id || null;
+    document.getElementById('paciente_id').value = data.paciente_id || '';
+    document.getElementById('medico_id').value = data.medico_id || '';
+    document.getElementById('start').value = data.start ? data.start.slice(0,16) : '';
+    document.getElementById('end').value = data.end ? data.end.slice(0,16) : '';
+    document.getElementById('tipo').value = data.tipo || '';
+    document.getElementById('descricao').value = data.descricao || '';
+    btnDelete.style.display = currentId ? 'inline-block' : 'none';
+    modal.style.display = 'block';
+  }
+
+  document.getElementById('btn-close').addEventListener('click', ()=> modal.style.display='none');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      paciente_id: form.paciente_id.value,
+      medico_id: form.medico_id.value || null,
+      start: form.start.value ? new Date(form.start.value).toISOString() : null,
+      end: form.end.value ? new Date(form.end.value).toISOString() : null,
+      tipo: form.tipo.value,
+      descricao: form.descricao.value
+    };
+    const url = currentId ? `/api/agendamentos/${currentId}` : '/api/agendamentos';
+    const method = currentId ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method,
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      modal.style.display='none';
+      calendar.refetchEvents();
+    } else {
+      const json = await res.json();
+      alert(json.error || 'Erro ao salvar');
+    }
+  });
+
+  btnDelete.addEventListener('click', async () => {
+    if (!currentId) return;
+    if (!confirm('Deseja excluir esse agendamento?')) return;
+    const res = await fetch(`/api/agendamentos/${currentId}`, { method:'DELETE' });
+    if (res.ok) { modal.style.display='none'; calendar.refetchEvents(); }
+    else alert('Erro ao excluir');
+  });
+});
+</script>
 {% endblock %}

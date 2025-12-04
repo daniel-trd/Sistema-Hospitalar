@@ -1,4 +1,4 @@
-from models.models import db, Paciente, Medico, Exame
+from models.models import db, Paciente, Medico, Exame, Users, Agendamento
 
 #CRUD PACIENTE
 def listar_pacientes():
@@ -20,17 +20,6 @@ def excluir_paciente(id):
         return True
     return False
 
-def editar_paciente(id, **dados):
-
-    edit_paciente = Paciente.query.get(id)
-    if not edit_paciente:
-        return None
-    
-    for campo, valor in dados.items():
-        setattr(edit_paciente, campo, valor)
-
-    db.session.commit()
-    return edit_paciente
 
 # CRUD EXAME
 def listar_exames():
@@ -52,17 +41,6 @@ def excluir_exame(id):
         return True
     return False
 
-def editar_exame(id, **dados):
-    
-    edit_exame = Exame.query.get(id)
-    if not edit_exame:
-        return None
-    
-    for campo, valor in dados.items():
-        setattr(edit_exame, campo, valor)
-
-    db.session.commit()
-    return edit_exame
 
 #CRUD MEDICOS
 def listar_medicos():
@@ -70,11 +48,13 @@ def listar_medicos():
     return Medico.query.all()
 
 def cadastro_medico(nome, crm, especialidade, telefone, email):
+
     new_medico = Medico(nome = nome, crm = crm, especialidade = especialidade, telefone = telefone, email = email)
     db.session.add(new_medico)
     db.session.commit()
 
 def excluir_medico(id):
+
     delete_medico = Medico.query.get(id)
     if delete_medico:
         db.session.delete(delete_medico)
@@ -82,13 +62,36 @@ def excluir_medico(id):
         return True
     return False
 
-def editar_medico(id, **dados):
-    edit_medico = Medico.query.get(id)
-    if not edit_medico:
-        return None
-    
-    for campo, valor in dados.items():
-        setattr(edit_medico, campo, valor)
 
+#CRUD AGENDAMENTO
+
+def listar_agendamentos():
+    return Agendamento.query.all()
+
+# CADASTRAR agendamento (recebe valores já validados pela rota)
+def cadastro_agendamento(paciente_id, medico_id, tipo="consulta", descricao=None):
+    # converte datetimes (expects ISO or 'YYYY-MM-DDTHH:MM' strings)
+
+    # opcional: validar paciente/medico existem
+    if paciente_id and not Paciente.query.get(int(paciente_id)):
+        raise ValueError("paciente não existe")
+    if medico_id and not Medico.query.get(int(medico_id)):
+        raise ValueError("medico não existe")
+
+    ag = Agendamento(
+        paciente_id = int(paciente_id),
+        medico_id = int(medico_id) if medico_id else None,
+        tipo = tipo
+    )
+    db.session.add(ag)
     db.session.commit()
-    return edit_medico
+    return ag
+
+# EXCLUIR por id
+def excluir_agendamento(id):
+    ag = Agendamento.query.get(id)
+    if not ag:
+        return False
+    db.session.delete(ag)
+    db.session.commit()
+    return True
